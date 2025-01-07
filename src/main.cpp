@@ -1,3 +1,4 @@
+#include <Arduino.h>                // Main arduino dep.
 #include <NewPing.h>                // Ultrasound sensor
 #include <LiquidCrystal_I2C.h>      // LCD
 #include <Wire.h>                   // I2C comms.
