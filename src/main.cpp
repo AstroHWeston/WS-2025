@@ -1,5 +1,10 @@
-#include <Arduino.h>
-#include <Servo.h>
+#include <NewPing.h>                // Ultrasound sensor
+#include <LiquidCrystal_I2C.h>      // LCD
+#include <Wire.h>                   // I2C comms.
+#include <WS2812-SOLDERED.h>        // LED strip
+#include <APDS9960-SOLDERED.h>      // Color sensor
+#include <Servo.h>                  // Servo
+#include <SPI.h>
 
 #define Servo_bl 9
 #define Servo_br 10
