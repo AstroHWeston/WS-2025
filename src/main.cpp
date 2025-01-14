@@ -22,6 +22,11 @@ NewPing sonarB(trigPin[usB], echoPin[usB], MAX_DISTANCE);
 NewPing sonarL(trigPin[usL], echoPin[usL], MAX_DISTANCE);
 NewPing sonarR(trigPin[usR], echoPin[usR], MAX_DISTANCE);
 
+// Line follower sensor //
+const int linApin[] = { A0, A1, A2, A3, A4, A5, A6, A7 };
+const int linDpin[] = { 41, 43, 45, 47, 49 };
+int calibration_values[5] = {40, 300, 50, 45, 45};
+
 // Liquid Crystal Display (LCD) //
 LiquidCrystal_I2C lcd(0x27, 2, 16);
 
@@ -57,6 +62,43 @@ Direction oldDir = Forward;
 Direction currentDir = Forward;
 Direction newDir = None;
 
+// *************************************************** //
+void reset_display() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+}
+// *************************************************** //
+void red() {
+  for (int i = 0; i < NUMPIXELS; i++) {
+    pixels.setPixelColor(i, pixels.Color(150, 0, 0));
+    pixels.show();
+    delay(20);
+  }
+}
+// *************************************************** //
+void green() {
+  for (int i = 0; i < NUMPIXELS; i++) {
+    pixels.setPixelColor(i, pixels.Color(0, 150, 0));
+    pixels.show();
+    delay(20);
+  }  
+}
+// *************************************************** //
+void blue() {
+    for (int i = 0; i < NUMPIXELS; i++) {
+    pixels.setPixelColor(i, pixels.Color(0, 0, 150));
+    pixels.show();
+    delay(20);
+  }
+}
+// *************************************************** //
+void yellow() {
+  for (int i = 0; i < NUMPIXELS; i++) {
+    pixels.setPixelColor(i, pixels.Color(150, 150, 0));
+    pixels.show();
+    delay(20);
+  }  
+}
 // *************************************************** //
 void motor_stop() {
   motor_fr.write(90);
@@ -169,7 +211,108 @@ void okret_180() {
   motor_stop();
 }
 // *************************************************** //
+int line_sensor_status(bool debug = false) {
+  int result[5];
+  int deviation = 0;
+  int n = 0;
+
+  for (int i = 0; i < 5; i++) {
+    digitalWrite(linDpin[i], HIGH);
+  }
+  delay(200);
+
+  for (int i = 0; i < 5; i++) {
+    if (debug) {
+      result[i] = analogRead(linApin[i]);
+    } else {
+      result[i] = analogRead(linApin[i]) > calibration_values[i] ? 1 : 0;
+    }
+    digitalWrite(linDpin[i], LOW);
+  }
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(result[0]);
+  lcd.setCursor(6,0);
+  lcd.print(result[2]);
+  lcd.setCursor(12,0);
+  lcd.print(result[4]);
+  lcd.setCursor(3,1);
+  lcd.print(result[1]);
+  lcd.setCursor(9,1);
+  lcd.print(result[3]);
+  delay(100);
+
+  return result[5];
+}
+// *************************************************** //
 
 void setup() {
-  
+  Serial.begin(9600);
+  Serial.println();
+  Serial.println("Welcome to Stjepan! Let's begin.");
+
+  // LCD //
+  Serial.println("Initializing the LCD...");
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Booting up...");
+  Serial.println("printed");
+  delay(5000);
+
+  // Line follower sensors initialization //
+  Serial.println("Initializing the line follower sensors...");
+
+  for (int i = 0; i < 5; i++) {
+    pinMode(linApin[i], INPUT);
+    pinMode(linDpin[i], OUTPUT);
+  }
+
+  // Color sensors initialization //
+  Serial.println("Initializing the color sensor...");
+
+  if (!apds.begin()) {
+    Serial.println("Error initializing the color sensor, bailing out!");
+    exit(1);
+  } else {
+    lcd.setCursor(0, 1);
+  }
+  delay(1000);
+
+  // LED strip initialization //
+  Serial.println("Initializing the LED strip...");
+
+  pixels.begin();
+  pixels.clear();
+  Serial.println("LED strip initialized, running tests...");
+
+  Serial.println("Testing red color...");
+  red();
+  Serial.println("Testing green color...");
+  green();
+  Serial.println("Testing blue color...");
+  blue();
+  Serial.println("Testing yellow color...");
+  yellow();
+
+  // Servo motors initialization //
+  Serial.println("Initializing the servo motors...");
+
+  motor_bl.attach(Servo_bl);
+  motor_br.attach(Servo_br);
+  motor_fl.attach(Servo_fl);
+  motor_fr.attach(Servo_fr);
+  Serial.println("Servo motors initialized.");
+
+  // Cleaning up before starting main loop //
+  Serial.println("Cleaning up before starting the main loop...");
+  pixels.clear();
+  reset_display();
+  Serial.println("Done! Stjepan is online and ready!");
+}
+
+void loop() {
+  line_sensor_status();
+  delay(2000);
 }
