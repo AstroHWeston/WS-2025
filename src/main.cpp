@@ -25,7 +25,7 @@ NewPing sonarR(trigPin[usR], echoPin[usR], MAX_DISTANCE);
 // Line follower sensor //
 const int linApin[] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 const int linDpin[] = { 41, 43, 45, 47, 49 };
-int calibration_values[5] = {40, 300, 50, 45, 45};
+int calibration_values[5] = { 200, 300, 300, 200, 200 };
 
 // Liquid Crystal Display (LCD) //
 LiquidCrystal_I2C lcd(0x27, 2, 16);
@@ -61,6 +61,15 @@ enum Direction {
 Direction oldDir = Forward;
 Direction currentDir = Forward;
 Direction newDir = None;
+
+enum Line_follower_status {
+  AllWhite,       // 0 //
+  AllBlack,       // 1 //
+  LeftBlack,      // 2 //
+  RightBlack,     // 3 //
+  MiddleBlack     // 4 //
+};
+Line_follower_status line_status = MiddleBlack;
 
 // *************************************************** //
 void reset_display() {
@@ -211,7 +220,7 @@ void okret_180() {
   motor_stop();
 }
 // *************************************************** //
-int line_sensor_status(bool debug = false) {
+Line_follower_status line_sensor_status (bool debug = false, bool show_on_display = false) {
   int result[5];
   int deviation = 0;
   int n = 0;
@@ -230,23 +239,39 @@ int line_sensor_status(bool debug = false) {
     digitalWrite(linDpin[i], LOW);
   }
 
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print(result[0]);
-  lcd.setCursor(6,0);
-  lcd.print(result[2]);
-  lcd.setCursor(12,0);
-  lcd.print(result[4]);
-  lcd.setCursor(3,1);
-  lcd.print(result[1]);
-  lcd.setCursor(9,1);
-  lcd.print(result[3]);
-  delay(100);
+  if (show_on_display) {
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(result[0]);
+    lcd.setCursor(6,0);
+    lcd.print(result[2]);
+    lcd.setCursor(12,0);
+    lcd.print(result[4]);
+    lcd.setCursor(3,1);
+    lcd.print(result[1]);
+    lcd.setCursor(9,1);
+    lcd.print(result[3]);
+    delay(100);
+  }
 
-  return result[5];
+  if (result[0] == 1 && result[1] == 1 && result[2] == 1 && result[3] == 1 && result[4] == 1) {
+    return line_status = AllBlack;
+  } else if (result[0] == 0 && result[1] == 0 && result[2] == 0 && result[3] == 0 && result[4] == 0) {
+    return line_status = AllWhite;
+  } else if (result[0] == 1 && result[1] == 1 && result[2] == (0 || 1) && result[3] == 0 && result[4] == 0) {
+    return line_status = LeftBlack;
+  } else if (result[0] == 0 && result[1] == 0 && result[2] == (0 || 1) && result[3] == 1 && result[4] == 1) {
+    return line_status = RightBlack;
+  } else if (result[0] == 0 && result[1] == 0 && result[2] == 1 && result[3] == 0 && result[4] == 0) {
+    return line_status = MiddleBlack;
+  }
 }
 // *************************************************** //
-
+void line_following_straight () {
+  int line_status = line_sensor_status();
+  delay(1000);
+}
+// *************************************************** //
 void setup() {
   Serial.begin(9600);
   Serial.println();
@@ -258,7 +283,6 @@ void setup() {
   lcd.backlight();
   lcd.setCursor(0, 0);
   lcd.print("Booting up...");
-  Serial.println("printed");
   delay(5000);
 
   // Line follower sensors initialization //
@@ -313,6 +337,7 @@ void setup() {
 }
 
 void loop() {
-  line_sensor_status();
+  int status = line_sensor_status(false, true);
+  Serial.println(line_status);
   delay(2000);
 }
