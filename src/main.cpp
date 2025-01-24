@@ -8,6 +8,13 @@
 #include <SPI.h>
 // *************************************************** //
 
+const char* bootStr = "  ____  _    _                           ___   ____  "
+                      " / ___|| |_ (_) ___ _ __   __ _ _ __    / _ \ / ___|  "
+                      " \___ \| __|| |/ _ \ '_ \ / _` | '_ \  | | | |\___ \  "
+                      "  ___) | |_ | |  __/ |_) | (_| | | | | | |_| | ___) | "
+                      " |____/ \__|/ |\___| .__/ \__,_|_| |_|  \___(_)____(_)"
+                      "          |__/     |_|                                ";
+
 // Ultrasound sensor //
 #define MAX_DISTANCE 400
 const int usF = 0;
@@ -72,12 +79,12 @@ enum Line_follower_status {
 Line_follower_status line_status = MiddleBlack;
 
 // *************************************************** //
-void reset_display() {
+void reset_display () {
   lcd.clear();
   lcd.setCursor(0, 0);
 }
 // *************************************************** //
-void red() {
+void red () {
   for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(150, 0, 0));
     pixels.show();
@@ -85,7 +92,7 @@ void red() {
   }
 }
 // *************************************************** //
-void green() {
+void green () {
   for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(0, 150, 0));
     pixels.show();
@@ -93,7 +100,7 @@ void green() {
   }  
 }
 // *************************************************** //
-void blue() {
+void blue () {
     for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(0, 0, 150));
     pixels.show();
@@ -101,7 +108,7 @@ void blue() {
   }
 }
 // *************************************************** //
-void yellow() {
+void yellow () {
   for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(150, 150, 0));
     pixels.show();
@@ -109,14 +116,14 @@ void yellow() {
   }  
 }
 // *************************************************** //
-void motor_stop() {
+void motor_stop () {
   motor_fr.write(90);
   motor_fl.write(90);
   motor_bl.write(90);
   motor_br.write(90);
 }
 // *************************************************** //
-void move_fw(int d = 0) { // Kretanje naprijed
+void move_fw (int d = 0) { // Kretanje naprijed
   currentDir = Forward;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(i);
@@ -130,7 +137,7 @@ void move_fw(int d = 0) { // Kretanje naprijed
   }
 }
 // *************************************************** //
-void move_back(int d = 0) { // Kretanje natrag
+void move_back (int d = 0) { // Kretanje natrag
   currentDir = Backward;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(180 - i);
@@ -144,7 +151,7 @@ void move_back(int d = 0) { // Kretanje natrag
   }
 }
 // *************************************************** //
-void move_right(int d = 0) { // Kretanje desno
+void move_right (int d = 0) { // Kretanje desno
   currentDir = Right;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(180 - i);
@@ -158,7 +165,7 @@ void move_right(int d = 0) { // Kretanje desno
   }
 }
 // *************************************************** //
-void move_left(int d = 0) { // Kretanje lijevo
+void move_left (int d = 0) { // Kretanje lijevo
   currentDir = Left;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(i);
@@ -172,7 +179,7 @@ void move_left(int d = 0) { // Kretanje lijevo
   }
 }
 // *************************************************** //
-void rotate_right(int d = 0) { // Rotacija desno
+void rotate_right (int d = 0) { // Rotacija desno
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(180 - i);
     motor_fl.write(180 - i);
@@ -185,7 +192,7 @@ void rotate_right(int d = 0) { // Rotacija desno
   }
 }
 // *************************************************** //
-void rotate_left(int d = 0) { // Rotacija lijevo
+void rotate_left (int d = 0) { // Rotacija lijevo
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(i);
     motor_fl.write(i);
@@ -198,7 +205,7 @@ void rotate_left(int d = 0) { // Rotacija lijevo
   }
 }
 // *************************************************** //
-void okret_90() {
+void okret_90 () {
   for (int i = 90; i >= 0; i--) {
     motor_fr.write(180 - i);
     motor_fl.write(180 - i);
@@ -209,7 +216,7 @@ void okret_90() {
   motor_stop();
 }
 // *************************************************** //
-void okret_180() {
+void okret_180 () {
   for (int i = 90; i <= 180; i++) { //prije maxp je bilo 180
     motor_fr.write(i);
     motor_fl.write(i);
@@ -222,8 +229,6 @@ void okret_180() {
 // *************************************************** //
 Line_follower_status line_sensor_status (bool debug = false, bool show_on_display = false) {
   int result[5];
-  int deviation = 0;
-  int n = 0;
 
   for (int i = 0; i < 5; i++) {
     digitalWrite(linDpin[i], HIGH);
@@ -269,12 +274,26 @@ Line_follower_status line_sensor_status (bool debug = false, bool show_on_displa
 // *************************************************** //
 void line_following_straight () {
   int line_status = line_sensor_status();
+  if (line_status == AllBlack) {
+    motor_stop();
+    delay(1000);
+    move_fw(1000);
+  } else if (line_status == LeftBlack) {
+    rotate_left();
+  } else if (line_status == RightBlack) {
+    rotate_right();
+  } else if (line_status == MiddleBlack) {
+    move_fw();
+  } else if (line_status == AllWhite) {
+    motor_stop();
+  }
   delay(1000);
 }
 // *************************************************** //
 void setup() {
   Serial.begin(9600);
   Serial.println();
+  Serial.println(bootStr);
   Serial.println("Welcome to Stjepan! Let's begin.");
 
   // LCD //
@@ -339,5 +358,4 @@ void setup() {
 void loop() {
   int status = line_sensor_status(false, true);
   Serial.println(line_status);
-  delay(2000);
 }
