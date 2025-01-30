@@ -8,13 +8,6 @@
 #include <SPI.h>
 // *************************************************** //
 
-const char* bootStr = "  ____  _    _                           ___   ____  "
-                      " / ___|| |_ (_) ___ _ __   __ _ _ __    / _ \ / ___|  "
-                      " \___ \| __|| |/ _ \ '_ \ / _` | '_ \  | | | |\___ \  "
-                      "  ___) | |_ | |  __/ |_) | (_| | | | | | |_| | ___) | "
-                      " |____/ \__|/ |\___| .__/ \__,_|_| |_|  \___(_)____(_)"
-                      "          |__/     |_|                                ";
-
 // Ultrasound sensor //
 #define MAX_DISTANCE 400
 const int usF = 0;
@@ -70,14 +63,28 @@ Direction currentDir = Forward;
 Direction newDir = None;
 
 enum Line_follower_status {
-  AllWhite,       // 0 //
-  AllBlack,       // 1 //
-  LeftBlack,      // 2 //
-  RightBlack,     // 3 //
-  MiddleBlack     // 4 //
+  AllWhite,               // 0 //
+  AllBlack,               // 1 //
+  LeftBlack,              // 2 //
+  RightBlack,             // 3 //
+  MiddleBlack,            // 4 //
+  RightSlightDeviation,   // 5 //
+  LeftSlightDeviation,    // 6 //
+  RightExtremeDeviation,  // 7 //
+  LeftExtremeDeviation,   // 8 //
 };
 Line_follower_status line_status = MiddleBlack;
 
+// *************************************************** //
+int binaryToDecimal(int arr[], int size = 5) {
+  int decimal = 0;
+
+  for (int i = 0; i < size; i++) {
+    decimal += arr[i] * (1 << (size - 1 - i));
+  }
+
+  return decimal;
+}
 // *************************************************** //
 void reset_display () {
   lcd.clear();
@@ -244,6 +251,8 @@ Line_follower_status line_sensor_status (bool debug = false, bool show_on_displa
     digitalWrite(linDpin[i], LOW);
   }
 
+  int decimalStatus = binaryToDecimal(result, 5);
+
   if (show_on_display) {
     lcd.clear();
     lcd.setCursor(0,0);
@@ -259,16 +268,29 @@ Line_follower_status line_sensor_status (bool debug = false, bool show_on_displa
     delay(100);
   }
 
-  if (result[0] == 1 && result[1] == 1 && result[2] == 1 && result[3] == 1 && result[4] == 1) {
-    return line_status = AllBlack;
-  } else if (result[0] == 0 && result[1] == 0 && result[2] == 0 && result[3] == 0 && result[4] == 0) {
-    return line_status = AllWhite;
-  } else if (result[0] == 1 && result[1] == 1 && result[2] == (0 || 1) && result[3] == 0 && result[4] == 0) {
-    return line_status = LeftBlack;
-  } else if (result[0] == 0 && result[1] == 0 && result[2] == (0 || 1) && result[3] == 1 && result[4] == 1) {
-    return line_status = RightBlack;
-  } else if (result[0] == 0 && result[1] == 0 && result[2] == 1 && result[3] == 0 && result[4] == 0) {
-    return line_status = MiddleBlack;
+  switch (decimalStatus) {
+    case 0:
+      return AllWhite;
+    case 1:
+      return RightExtremeDeviation;
+    case 2:
+      return RightSlightDeviation;
+    case 3:
+      return RightBlack;
+    case 4:
+      return MiddleBlack;
+    case 7:
+      return RightBlack;
+    case 8:
+      return LeftSlightDeviation;
+    case 16:
+      return LeftExtremeDeviation;
+    case 24:
+      return LeftBlack;
+    case 28:
+      return LeftBlack;
+    case 31:
+      return AllBlack;
   }
 }
 // *************************************************** //
@@ -287,13 +309,12 @@ void line_following_straight () {
   } else if (line_status == AllWhite) {
     motor_stop();
   }
-  delay(1000);
+  delay(100);
 }
 // *************************************************** //
 void setup() {
   Serial.begin(9600);
   Serial.println();
-  Serial.println(bootStr);
   Serial.println("Welcome to Stjepan! Let's begin.");
 
   // LCD //
@@ -357,5 +378,6 @@ void setup() {
 
 void loop() {
   int status = line_sensor_status(false, true);
-  Serial.println(line_status);
+  Serial.println(status);
+  delay(1000);
 }
