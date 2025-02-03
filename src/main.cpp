@@ -312,6 +312,14 @@ void line_following_straight () {
     move_fw();
   } else if (line_status == AllWhite) {
     motor_stop();
+  } else if (line_status == RightSlightDeviation) {
+    rotate_left();
+  } else if (line_status == LeftSlightDeviation) {
+    rotate_right();
+  } else if (line_status == RightExtremeDeviation) {
+    rotate_left();
+  } else if (line_status == LeftExtremeDeviation) {
+    rotate_right();
   }
   delay(100);
 }
