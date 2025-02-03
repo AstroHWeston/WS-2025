@@ -279,10 +279,14 @@ Line_follower_status line_sensor_status (bool debug = false, bool show_on_displa
       return RightBlack;
     case 4:
       return MiddleBlack;
+    case 6:
+      return MiddleBlack;
     case 7:
       return RightBlack;
     case 8:
       return LeftSlightDeviation;
+    case 12:
+      return MiddleBlack;
     case 16:
       return LeftExtremeDeviation;
     case 24:
@@ -377,7 +381,8 @@ void setup() {
 }
 
 void loop() {
-  int status = line_sensor_status(false, true);
-  Serial.println(status);
-  delay(1000);
+  //int status = line_sensor_status(false, true);
+  line_following_straight();
+  //Serial.println(status);
+  delay(1);
 }
