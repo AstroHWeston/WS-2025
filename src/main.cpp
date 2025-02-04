@@ -313,13 +313,13 @@ void line_following_straight () {
   } else if (line_status == AllWhite) {
     motor_stop();
   } else if (line_status == RightSlightDeviation) {
-    rotate_left();
+    rotate_right();
   } else if (line_status == LeftSlightDeviation) {
-    rotate_right();
-  } else if (line_status == RightExtremeDeviation) {
     rotate_left();
-  } else if (line_status == LeftExtremeDeviation) {
+  } else if (line_status == RightExtremeDeviation) {
     rotate_right();
+  } else if (line_status == LeftExtremeDeviation) {
+    rotate_left();
   }
   delay(100);
 }
@@ -335,7 +335,6 @@ void setup() {
   lcd.backlight();
   lcd.setCursor(0, 0);
   lcd.print("Booting up...");
-  delay(5000);
 
   // Line follower sensors initialization //
   Serial.println("Initializing the line follower sensors...");
