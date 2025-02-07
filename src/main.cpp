@@ -5,7 +5,7 @@
 #include <WS2812-SOLDERED.h>        // LED strip          //
 #include <APDS9960-SOLDERED.h>      // Color sensor       //
 #include <Servo.h>                  // Servo              //
-#include <SPI.h>
+#include <SPI.h>                    // dawg idek          //
 // *************************************************** //
 
 // Ultrasound sensor //
