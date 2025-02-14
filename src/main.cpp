@@ -25,7 +25,7 @@ NewPing sonarR(trigPin[usR], echoPin[usR], MAX_DISTANCE);
 // Line follower sensor //
 const int linApin[] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 const int linDpin[] = { 41, 43, 45, 47, 49 };
-int calibration_values[5] = { 200, 300, 300, 200, 200 };
+int calibration_values[5] = { 200, 200, 200, 200, 150 };
 
 // Liquid Crystal Display (LCD) //
 LiquidCrystal_I2C lcd(0x27, 2, 16);
@@ -305,8 +305,9 @@ Line_follower_status line_sensor_status (bool debug = false, bool show_on_displa
 // *************************************************** //
 void line_following_straight () {
   int line_status = line_sensor_status();
+  Serial.println(line_status);
 
-  if (line_status == old_line_status) return;
+  //if (line_status == old_line_status) return;
 
   if (line_status == AllBlack) {
     motor_stop();
@@ -329,7 +330,7 @@ void line_following_straight () {
   } else if (line_status == LeftExtremeDeviation) {
     rotate_left();
   }
-  delay(50);
+  delay(250);
 }
 // *************************************************** //
 
@@ -356,12 +357,12 @@ void setup() {
   // Color sensors initialization //
   Serial.println("Initializing the color sensor...");
 
-  if (!apds.begin()) {
+  /*if (!apds.begin()) {
     Serial.println("Error initializing the color sensor, bailing out!");
     exit(1);
   } else {
     lcd.setCursor(0, 1);
-  }
+  }*/
   delay(1000);
 
   // LED strip initialization //
@@ -397,8 +398,7 @@ void setup() {
 }
 
 void loop() {
-  int status = line_sensor_status(true, true);
-  //line_following_straight();
+  //int status = line_sensor_status(true, true);
+  line_following_straight();  
   //Serial.println(status);
-  delay(1);
 }
