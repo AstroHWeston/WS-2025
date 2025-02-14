@@ -50,6 +50,7 @@ Servo motor_fl;
 Servo motor_fr;
 int maxP = 120;
 int maxN = 180 - maxP;
+int max_rotation_speed = maxN - 15;
 
 enum Direction {
   Forward,        // 0 //
@@ -73,7 +74,7 @@ enum Line_follower_status {
   RightExtremeDeviation,  // 7 //
   LeftExtremeDeviation,   // 8 //
 };
-Line_follower_status line_status = MiddleBlack;
+Line_follower_status old_line_status = MiddleBlack;
 
 // *************************************************** //
 int binaryToDecimal(int arr[], int size = 5) {
@@ -130,7 +131,7 @@ void motor_stop () {
   motor_br.write(90);
 }
 // *************************************************** //
-void move_fw (int d = 0) { // Kretanje naprijed
+void move_fw (int d = 0) {
   currentDir = Forward;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(i);
@@ -138,13 +139,13 @@ void move_fw (int d = 0) { // Kretanje naprijed
     motor_bl.write(180 - i);
     motor_br.write(i);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
 }
 // *************************************************** //
-void move_back (int d = 0) { // Kretanje natrag
+void move_back (int d = 0) {
   currentDir = Backward;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(180 - i);
@@ -152,13 +153,13 @@ void move_back (int d = 0) { // Kretanje natrag
     motor_bl.write(i);
     motor_br.write(180 - i);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
 }
 // *************************************************** //
-void move_right (int d = 0) { // Kretanje desno
+void move_right (int d = 0) {
   currentDir = Right;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(180 - i);
@@ -166,13 +167,13 @@ void move_right (int d = 0) { // Kretanje desno
     motor_bl.write(i);
     motor_br.write(i);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
 }
 // *************************************************** //
-void move_left (int d = 0) { // Kretanje lijevo
+void move_left (int d = 0) {
   currentDir = Left;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(i);
@@ -180,33 +181,37 @@ void move_left (int d = 0) { // Kretanje lijevo
     motor_bl.write(180 - i);
     motor_br.write(180 - i);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
 }
 // *************************************************** //
-void rotate_right (int d = 0) { // Rotacija desno
+void rotate_right (int d = 0) {
+  int current_motor_status_bl = motor_bl.read();
+  int current_motor_status_br = motor_br.read();
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(180 - i);
     motor_fl.write(180 - i);
-    motor_bl.write(90);
-    motor_br.write(90);
+    motor_bl.write(current_motor_status_bl);
+    motor_br.write(current_motor_status_br);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
 }
 // *************************************************** //
-void rotate_left (int d = 0) { // Rotacija lijevo
+void rotate_left (int d = 0) {
+  int current_motor_status_bl = motor_bl.read();
+  int current_motor_status_br = motor_br.read();
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(i);
     motor_fl.write(i);
-    motor_bl.write(90);
-    motor_br.write(90);
+    motor_bl.write(current_motor_status_bl);
+    motor_br.write(current_motor_status_br);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
@@ -224,7 +229,7 @@ void okret_90 () {
 }
 // *************************************************** //
 void okret_180 () {
-  for (int i = 90; i <= 180; i++) { //prije maxp je bilo 180
+  for (int i = 90; i <= 180; i++) {
     motor_fr.write(i);
     motor_fl.write(i);
     motor_bl.write(i);
@@ -300,6 +305,9 @@ Line_follower_status line_sensor_status (bool debug = false, bool show_on_displa
 // *************************************************** //
 void line_following_straight () {
   int line_status = line_sensor_status();
+
+  if (line_status == old_line_status) return;
+
   if (line_status == AllBlack) {
     motor_stop();
     delay(1000);
@@ -321,9 +329,10 @@ void line_following_straight () {
   } else if (line_status == LeftExtremeDeviation) {
     rotate_left();
   }
-  delay(100);
+  delay(50);
 }
 // *************************************************** //
+
 void setup() {
   Serial.begin(9600);
   Serial.println();
@@ -388,8 +397,8 @@ void setup() {
 }
 
 void loop() {
-  //int status = line_sensor_status(false, true);
-  line_following_straight();
+  int status = line_sensor_status(true, true);
+  //line_following_straight();
   //Serial.println(status);
   delay(1);
 }
