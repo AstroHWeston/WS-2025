@@ -25,7 +25,7 @@ NewPing sonarR(trigPin[usR], echoPin[usR], MAX_DISTANCE);
 // Line follower sensor //
 const int linApin[] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 const int linDpin[] = { 41, 43, 45, 47, 49 };
-int calibration_values[5] = { 200, 200, 200, 200, 150 };
+int calibration_values[5] = { 200, 200, 200, 200, 140 };
 
 // Liquid Crystal Display (LCD) //
 LiquidCrystal_I2C lcd(0x27, 2, 16);
@@ -49,7 +49,7 @@ Servo motor_br;
 Servo motor_fl;
 Servo motor_fr;
 int maxP = 120;
-int maxN = 180 - maxP;
+int maxN = 180 - 120;
 
 enum Direction {
   Forward,        // 0 //
@@ -250,7 +250,7 @@ void okret_180 () {
  * The below function allows for reading the line following sensor.
  * Additionally, it takes 2 funciton parameters:
  * 1. "Debug" - False by default, but if set to true, it will print out the actual sensor readings. Otherwise, it will return a bit depending on if the line is black or not.
- * 2. "SHow_on_display" - False by default, but if set to true, it will display the sensor readings (or bits, depending on the first parameter) on the LCD.
+ * 2. "Show_on_display" - False by default, but if set to true, it will display the sensor readings (or bits, depending on the first parameter) on the LCD.
  */
 Line_follower_status line_sensor_status (bool debug = false, bool show_on_display = false) {
   int result[5];
@@ -318,14 +318,15 @@ Line_follower_status line_sensor_status (bool debug = false, bool show_on_displa
 // *************************************************** //
 // The function below is used to follow the line. //
 void line_following_straight () {
-  int line_status = line_sensor_status();
+  Line_follower_status line_status = line_sensor_status();
   Serial.println(line_status);
-
-  //if (line_status == old_line_status) return;
+  
+  if (line_status == old_line_status) return;
+  old_line_status = line_status;
   if (line_status == AllBlack) {
     motor_stop();
     delay(1000);
-    move_fw(1000);
+    //move_fw(1000);
   } else if (line_status == LeftBlack) {
     rotate_left();
   } else if (line_status == RightBlack) {
@@ -409,7 +410,40 @@ void setup() {
 }
 
 void loop() {
-  //int status = line_sensor_status(true, true);
-  line_following_straight();  
-  //Serial.println(status);
+  while (!apds.colorAvailable()) {
+    delay(5); //Wait for color reading to be available
+    Serial.println("Color unavailable.");
+  }
+  int r, g, b;
+
+  apds.readColor(r, g, b);
+
+  Serial.print("R: "); Serial.print(r); Serial.print(" G: "); Serial.print(g); Serial.print(" B: "); Serial.print(b);
+  if (r > g + 3 && r > b) {
+    Serial.print("Color is red!");
+    lcd.print("Crvena boja!");
+    Serial.println();
+    red();
+  } else if (g + 3 > r && g + 3 > b) {
+    Serial.print("Color is green!");
+    lcd.print("Zelena boja!");
+    Serial.println();
+    green();
+  } else if (b + 3 > r && b + 3 > g) {
+    Serial.print("Color is blue!");
+    lcd.print("Plava boja!");
+    Serial.println();
+    blue();
+  } else {
+    Serial.print("Color is unknown!");
+    Serial.println();
+  }
+  lcd.clear();
+  lcd.setCursor(0, 0);
+
+  while (old_line_status != AllBlack) {
+    int status = line_sensor_status(true, true);
+    line_following_straight();
+  }
+  motor_stop();
 }
