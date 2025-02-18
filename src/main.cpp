@@ -5,7 +5,7 @@
 #include <WS2812-SOLDERED.h>        // LED strip          //
 #include <APDS9960-SOLDERED.h>      // Color sensor       //
 #include <Servo.h>                  // Servo              //
-#include <SPI.h>
+#include <SPI.h>                    // dawg idek          //
 // *************************************************** //
 
 // Ultrasound sensor //
@@ -50,7 +50,6 @@ Servo motor_fl;
 Servo motor_fr;
 int maxP = 120;
 int maxN = 180 - maxP;
-int max_rotation_speed = maxN - 15;
 
 enum Direction {
   Forward,        // 0 //
@@ -160,6 +159,7 @@ void move_back (int d = 0) {
 }
 // *************************************************** //
 void move_right (int d = 0) {
+=======
   currentDir = Right;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(180 - i);
@@ -308,7 +308,6 @@ void line_following_straight () {
   Serial.println(line_status);
 
   //if (line_status == old_line_status) return;
-
   if (line_status == AllBlack) {
     motor_stop();
     delay(1000);
@@ -333,7 +332,6 @@ void line_following_straight () {
   delay(250);
 }
 // *************************************************** //
-
 void setup() {
   Serial.begin(9600);
   Serial.println();
@@ -356,13 +354,12 @@ void setup() {
 
   // Color sensors initialization //
   Serial.println("Initializing the color sensor...");
-
-  /*if (!apds.begin()) {
+  if (!apds.begin()) {
     Serial.println("Error initializing the color sensor, bailing out!");
     exit(1);
   } else {
     lcd.setCursor(0, 1);
-  }*/
+  }
   delay(1000);
 
   // LED strip initialization //
