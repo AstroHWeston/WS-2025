@@ -246,6 +246,12 @@ void okret_180 () {
   motor_stop();
 }
 // *************************************************** //
+/**
+ * The below function allows for reading the line following sensor.
+ * Additionally, it takes 2 funciton parameters:
+ * 1. "Debug" - False by default, but if set to true, it will print out the actual sensor readings. Otherwise, it will return a bit depending on if the line is black or not.
+ * 2. "SHow_on_display" - False by default, but if set to true, it will display the sensor readings (or bits, depending on the first parameter) on the LCD.
+ */
 Line_follower_status line_sensor_status (bool debug = false, bool show_on_display = false) {
   int result[5];
 
@@ -310,6 +316,7 @@ Line_follower_status line_sensor_status (bool debug = false, bool show_on_displa
   }
 }
 // *************************************************** //
+// The function below is used to follow the line. //
 void line_following_straight () {
   int line_status = line_sensor_status();
   Serial.println(line_status);
