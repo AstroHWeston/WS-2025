@@ -167,7 +167,6 @@ void move_back (int d = 0) {
 }
 // *************************************************** //
 void move_right (int d = 0) {
-=======
   currentDir = Right;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(180 - i);
