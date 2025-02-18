@@ -73,9 +73,10 @@ enum Line_follower_status {
   RightExtremeDeviation,  // 7 //
   LeftExtremeDeviation,   // 8 //
 };
-Line_follower_status old_line_status = MiddleBlack;
+Line_follower_status old_line_status = AllWhite;
 
 // *************************************************** //
+// The following function takes in an array of 5 bits (from the line follow sensor readings) and converts it to a decimal number. //
 int binaryToDecimal(int arr[], int size = 5) {
   int decimal = 0;
 
@@ -86,11 +87,13 @@ int binaryToDecimal(int arr[], int size = 5) {
   return decimal;
 }
 // *************************************************** //
+// The function below clears the LCD and sets the cursor to the top left corner. //
 void reset_display () {
   lcd.clear();
   lcd.setCursor(0, 0);
 }
 // *************************************************** //
+// The function below is used to display the red color on the LED strip. //
 void red () {
   for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(150, 0, 0));
@@ -99,6 +102,7 @@ void red () {
   }
 }
 // *************************************************** //
+// The function below is used to display the green color on the LED strip. //
 void green () {
   for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(0, 150, 0));
@@ -107,6 +111,7 @@ void green () {
   }  
 }
 // *************************************************** //
+// The function below is used to display the blue color on the LED strip. //
 void blue () {
     for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(0, 0, 150));
@@ -115,6 +120,7 @@ void blue () {
   }
 }
 // *************************************************** //
+// The function below is used to display the yellow color on the LED strip. //
 void yellow () {
   for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(150, 150, 0));
@@ -123,6 +129,7 @@ void yellow () {
   }  
 }
 // *************************************************** //
+// The function below is used to stop the servo motor. //
 void motor_stop () {
   motor_fr.write(90);
   motor_fl.write(90);
@@ -130,6 +137,7 @@ void motor_stop () {
   motor_br.write(90);
 }
 // *************************************************** //
+// The functions below determine different directions for the servo motor. //
 void move_fw (int d = 0) {
   currentDir = Forward;
   for (int i = 90; i >= maxN; i--) {
