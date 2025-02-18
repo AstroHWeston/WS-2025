@@ -197,7 +197,7 @@ void move_left (int d = 0) {
 void rotate_right (int d = 0) {
   int current_motor_status_bl = motor_bl.read();
   int current_motor_status_br = motor_br.read();
-  for (int i = 90; i >= maxN; i--) {
+  for (int i = 90; i >= maxN - 15; i--) {
     motor_fr.write(180 - i);
     motor_fl.write(180 - i);
     motor_bl.write(current_motor_status_bl);
@@ -212,7 +212,7 @@ void rotate_right (int d = 0) {
 void rotate_left (int d = 0) {
   int current_motor_status_bl = motor_bl.read();
   int current_motor_status_br = motor_br.read();
-  for (int i = 90; i >= maxN; i--) {
+  for (int i = 90; i >= maxN - 15; i--) {
     motor_fr.write(i);
     motor_fl.write(i);
     motor_bl.write(current_motor_status_bl);
