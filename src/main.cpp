@@ -5,7 +5,7 @@
 #include <WS2812-SOLDERED.h>        // LED strip          //
 #include <APDS9960-SOLDERED.h>      // Color sensor       //
 #include <Servo.h>                  // Servo              //
-#include <SPI.h>
+#include <SPI.h>                    // dawg idek          //
 // *************************************************** //
 
 // Ultrasound sensor //
@@ -25,7 +25,7 @@ NewPing sonarR(trigPin[usR], echoPin[usR], MAX_DISTANCE);
 // Line follower sensor //
 const int linApin[] = { A0, A1, A2, A3, A4, A5, A6, A7 };
 const int linDpin[] = { 41, 43, 45, 47, 49 };
-int calibration_values[5] = { 200, 300, 300, 200, 200 };
+int calibration_values[5] = { 200, 200, 200, 200, 150 };
 
 // Liquid Crystal Display (LCD) //
 LiquidCrystal_I2C lcd(0x27, 2, 16);
@@ -73,9 +73,10 @@ enum Line_follower_status {
   RightExtremeDeviation,  // 7 //
   LeftExtremeDeviation,   // 8 //
 };
-Line_follower_status line_status = MiddleBlack;
+Line_follower_status old_line_status = AllWhite;
 
 // *************************************************** //
+// The following function takes in an array of 5 bits (from the line follow sensor readings) and converts it to a decimal number. //
 int binaryToDecimal(int arr[], int size = 5) {
   int decimal = 0;
 
@@ -86,11 +87,13 @@ int binaryToDecimal(int arr[], int size = 5) {
   return decimal;
 }
 // *************************************************** //
+// The function below clears the LCD and sets the cursor to the top left corner. //
 void reset_display () {
   lcd.clear();
   lcd.setCursor(0, 0);
 }
 // *************************************************** //
+// The function below is used to display the red color on the LED strip. //
 void red () {
   for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(150, 0, 0));
@@ -99,6 +102,7 @@ void red () {
   }
 }
 // *************************************************** //
+// The function below is used to display the green color on the LED strip. //
 void green () {
   for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(0, 150, 0));
@@ -107,6 +111,7 @@ void green () {
   }  
 }
 // *************************************************** //
+// The function below is used to display the blue color on the LED strip. //
 void blue () {
     for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(0, 0, 150));
@@ -115,6 +120,7 @@ void blue () {
   }
 }
 // *************************************************** //
+// The function below is used to display the yellow color on the LED strip. //
 void yellow () {
   for (int i = 0; i < NUMPIXELS; i++) {
     pixels.setPixelColor(i, pixels.Color(150, 150, 0));
@@ -123,6 +129,7 @@ void yellow () {
   }  
 }
 // *************************************************** //
+// The function below is used to stop the servo motor. //
 void motor_stop () {
   motor_fr.write(90);
   motor_fl.write(90);
@@ -130,7 +137,8 @@ void motor_stop () {
   motor_br.write(90);
 }
 // *************************************************** //
-void move_fw (int d = 0) { // Kretanje naprijed
+// The functions below determine different directions for the servo motor. //
+void move_fw (int d = 0) {
   currentDir = Forward;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(i);
@@ -138,13 +146,13 @@ void move_fw (int d = 0) { // Kretanje naprijed
     motor_bl.write(180 - i);
     motor_br.write(i);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
 }
 // *************************************************** //
-void move_back (int d = 0) { // Kretanje natrag
+void move_back (int d = 0) {
   currentDir = Backward;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(180 - i);
@@ -152,13 +160,13 @@ void move_back (int d = 0) { // Kretanje natrag
     motor_bl.write(i);
     motor_br.write(180 - i);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
 }
 // *************************************************** //
-void move_right (int d = 0) { // Kretanje desno
+void move_right (int d = 0) {
   currentDir = Right;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(180 - i);
@@ -166,13 +174,13 @@ void move_right (int d = 0) { // Kretanje desno
     motor_bl.write(i);
     motor_br.write(i);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
 }
 // *************************************************** //
-void move_left (int d = 0) { // Kretanje lijevo
+void move_left (int d = 0) {
   currentDir = Left;
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(i);
@@ -180,33 +188,37 @@ void move_left (int d = 0) { // Kretanje lijevo
     motor_bl.write(180 - i);
     motor_br.write(180 - i);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
 }
 // *************************************************** //
-void rotate_right (int d = 0) { // Rotacija desno
+void rotate_right (int d = 0) {
+  int current_motor_status_bl = motor_bl.read();
+  int current_motor_status_br = motor_br.read();
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(180 - i);
     motor_fl.write(180 - i);
-    motor_bl.write(90);
-    motor_br.write(90);
+    motor_bl.write(current_motor_status_bl);
+    motor_br.write(current_motor_status_br);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
 }
 // *************************************************** //
-void rotate_left (int d = 0) { // Rotacija lijevo
+void rotate_left (int d = 0) {
+  int current_motor_status_bl = motor_bl.read();
+  int current_motor_status_br = motor_br.read();
   for (int i = 90; i >= maxN; i--) {
     motor_fr.write(i);
     motor_fl.write(i);
-    motor_bl.write(90);
-    motor_br.write(90);
+    motor_bl.write(current_motor_status_bl);
+    motor_br.write(current_motor_status_br);
   }
-  if(d > 0) {
+  if (d > 0) {
     delay(d);
     motor_stop();
   }
@@ -224,7 +236,7 @@ void okret_90 () {
 }
 // *************************************************** //
 void okret_180 () {
-  for (int i = 90; i <= 180; i++) { //prije maxp je bilo 180
+  for (int i = 90; i <= 180; i++) {
     motor_fr.write(i);
     motor_fl.write(i);
     motor_bl.write(i);
@@ -300,6 +312,9 @@ Line_follower_status line_sensor_status (bool debug = false, bool show_on_displa
 // *************************************************** //
 void line_following_straight () {
   int line_status = line_sensor_status();
+  Serial.println(line_status);
+
+  //if (line_status == old_line_status) return;
   if (line_status == AllBlack) {
     motor_stop();
     delay(1000);
@@ -321,7 +336,7 @@ void line_following_straight () {
   } else if (line_status == LeftExtremeDeviation) {
     rotate_left();
   }
-  delay(100);
+  delay(250);
 }
 // *************************************************** //
 void setup() {
@@ -346,7 +361,6 @@ void setup() {
 
   // Color sensors initialization //
   Serial.println("Initializing the color sensor...");
-
   if (!apds.begin()) {
     Serial.println("Error initializing the color sensor, bailing out!");
     exit(1);
@@ -388,8 +402,7 @@ void setup() {
 }
 
 void loop() {
-  //int status = line_sensor_status(false, true);
-  line_following_straight();
+  //int status = line_sensor_status(true, true);
+  line_following_straight();  
   //Serial.println(status);
-  delay(1);
 }
